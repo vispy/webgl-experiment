@@ -2,29 +2,32 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 from tornado import gen
+import numpy as np
+import json
 
-init = False
+dt = .01
+t = 0.
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
-        global init
-        if init:
-            return
         print "WebSocket opened"
-        interval_ms = 10
+        interval_ms = dt * 1000
         main_loop = tornado.ioloop.IOLoop.instance()
-        sched = tornado.ioloop.PeriodicCallback(self.schedule_func, interval_ms, 
+        self.sched = tornado.ioloop.PeriodicCallback(self.schedule_func, interval_ms, 
             io_loop=main_loop)
-        sched.start()
-        init = True
+        self.sched.start()
 
-    def on_message(self, message):
-        print "Received:", message
+    # def on_message(self, message):
+        # print "Received:", message
 
     def on_close(self):
         print "WebSocket closed"
+        self.sched.stop()
     
     def schedule_func(self):
-        self.write_message("Python to JSON")
+        global t
+        d = dict(x=np.cos(t), y=np.sin(t))
+        self.write_message(json.dumps(d))
+        t += dt
 
 if __name__ == "__main__":
     application = tornado.web.Application([
