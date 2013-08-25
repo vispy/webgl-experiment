@@ -30,22 +30,30 @@ class GLRecorder(object):
         
     def _record(self, name, *args):
         self.commands.append((name, args))
+        # Return the index of the current command.
+        return dict(output_index=(len(self.commands) - 1))
         
     def __getattr__(self, name):
         try:
             return getattr(_constants, name)
         except AttributeError:
-            return partial(self._record, name)        
+            return partial(self._record, name)
 gl = GLRecorder()
+
+def convert_name(name):
+    """Return the ES command name."""
+    # Use WebGL syntax: there is no "gl" prefix and the first letter is
+    # in lower case.
+    if name == 'glGet':
+        return 'getParameter'
+    elif name.startswith('gl'):
+        return name[2].lower() + name[3:]
 
 def wrap_gl_command(command):
     """Return a JSON string wrapping a given command.
     A command is a tuple (gl_function_name, args)."""
-    name, args = command
-    # Use WebGL syntax: there is no "gl" prefix and the first letter is
-    # in lower case.
-    if name.startswith('gl'):
-        name = name[2].lower() + name[3:]
+    name_gl, args = command
+    name = convert_name(name_gl)
     d = OrderedDict(
         name=name,
         args=args,
@@ -95,11 +103,12 @@ def run():
 # Rendering functions
 # -----------------------------------------------------------------------------
 t = 0.
-dt = .01
+dt = .1
 def on_paint(e):
     global t
     c = abs(math.sin(t))
-    gl.glClearColor(c, c, c, 1)
+    x = gl.glGet(gl.GL_MAX_VERTEX_ATTRIBS)
+    gl.glClearColor(c, x, 0, 1)
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
     t += dt
 
