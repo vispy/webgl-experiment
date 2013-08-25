@@ -1,3 +1,6 @@
+# -----------------------------------------------------------------------------
+# Imports
+# -----------------------------------------------------------------------------
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
@@ -10,6 +13,10 @@ from functools import partial
 from vispy.gl import _gl
 from vispy.gl import _constants
 
+
+# -----------------------------------------------------------------------------
+# WebGL dynamic code generation
+# -----------------------------------------------------------------------------
 class GLRecorder(object):
     """Capture all GL commands with the adequate arguments.
     
@@ -46,11 +53,9 @@ def wrap_gl_command(command):
     )
     return json.dumps(d)
 
-dt = .01
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         print "WebSocket opened"
-        self.t = 0.
         interval_ms = dt * 1000
         main_loop = tornado.ioloop.IOLoop.instance()
         self.sched = tornado.ioloop.PeriodicCallback(self.schedule_func, interval_ms, 
@@ -58,12 +63,12 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
         self.sched.start()
         
     def schedule_func(self):
+        # Flush the list of GL commands to send.
         gl.clear()
-        c = abs(math.sin(self.t))
-        gl.glClearColor(c, c, c, 1)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        # Call on_paint to generate the list of GL commands.
+        on_paint(None)
+        # Send the list of commands to the browser, command after command.
         self.send_commands()
-        self.t += dt
         
     def send_commands(self):
         for command in gl.commands:
@@ -73,7 +78,7 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
         print "WebSocket closed"
         self.sched.stop()
 
-if __name__ == "__main__":
+def run():
     application = tornado.web.Application([
             (r"/", EchoWebSocket),
         ])
@@ -81,4 +86,18 @@ if __name__ == "__main__":
     main_loop = tornado.ioloop.IOLoop.instance()    
     main_loop.start()
     
-    
+
+# -----------------------------------------------------------------------------
+# Rendering functions
+# -----------------------------------------------------------------------------
+t = 0.
+dt = .01
+def on_paint(e):
+    global t
+    c = abs(math.sin(t))
+    gl.glClearColor(c, c, c, 1)
+    gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+    t += dt
+
+if __name__ == "__main__":
+    run()
