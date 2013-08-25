@@ -25,11 +25,29 @@
             ws.onmessage = function (evt) { 
                 d = JSON.parse(evt.data);
                 commands = d['commands'];
+                outputs = [];
                 for (var i = 0; i < commands.length; i++) {
                     c = commands[i];
+                    //console.log(c);
                     name = c['name'];
                     args = c['args'];
-                    gl[name].apply(gl, args);
+                    for (var j = 0; j < args.length; j++) {
+                        if ((typeof(args[j]) === 'object') && (args[j] != null)) {
+                            // Replace output place-holders with their actual 
+                            // values, recorded in 'outputs'.
+                            if (args[j]['output_index'] != null) {
+                                args[j] = outputs[args[j]['output_index']];
+                            }
+                            // Replace NumPy arrays with Javascript array views.
+                            else if (args[j]['ndarray'] != null) {
+                                args[j] = new Float32Array(args[j]['ndarray']);
+                            }
+                        }
+                    }
+                    outputs[i] = gl[name].apply(gl, args);
+                    /*console.log(name);
+                    console.log(args);
+                    console.log(outputs[i]);*/
                 }
             };
         }
