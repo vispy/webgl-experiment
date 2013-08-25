@@ -1,0 +1,57 @@
+<html>
+<head>
+<script type="text/javascript">
+
+    var gl;
+    function initGL(canvas) {
+        try {
+            gl = canvas.getContext("experimental-webgl");
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+        } catch (e) {
+        }
+        if (!gl) {
+            alert("Could not initialise WebGL, sorry :-(");
+        }
+    }
+
+    function initWebGL() {
+        var canvas = document.getElementById("canvas");
+        initGL(canvas);
+    }
+    
+    function initWebSocket() {
+        if ("WebSocket" in window)
+        {
+            var ws = new WebSocket("ws://localhost:8888/");
+            /*ws.onopen = function() { 
+                ws.send("JS to Python"); 
+            };*/
+            ws.onmessage = function (evt) { 
+                d = JSON.parse(evt.data);
+                name = d['command_name'];
+                args = d['args'];
+                gl[name].apply(gl, args);
+                
+            };
+        }
+        else
+        {
+            alert("WebSocket NOT supported by your Browser!");
+        }
+    }
+    
+    function init()
+    {
+        initWebSocket();
+        initWebGL();
+    }
+
+</script>
+</head>
+
+<body onload="init();">
+    <canvas id="canvas" style="border: none;" width="500" height="500"></canvas>
+</body>
+
+</html>
