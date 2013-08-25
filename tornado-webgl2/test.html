@@ -24,9 +24,13 @@
             var ws = new WebSocket("ws://localhost:8888/");
             ws.onmessage = function (evt) { 
                 d = JSON.parse(evt.data);
-                name = d['command_name'];
-                args = d['args'];
-                gl[name].apply(gl, args);
+                commands = d['commands'];
+                for (var i = 0; i < commands.length; i++) {
+                    c = commands[i];
+                    name = c['name'];
+                    args = c['args'];
+                    gl[name].apply(gl, args);
+                }
             };
         }
         else {

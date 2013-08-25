@@ -47,10 +47,15 @@ def wrap_gl_command(command):
     if name.startswith('gl'):
         name = name[2].lower() + name[3:]
     d = OrderedDict(
-        message_type='gl',
-        command_name=name,
+        name=name,
         args=args,
     )
+    return d
+    
+def wrap_gl_commands(commands):
+    d = OrderedDict(
+        message_type='gl',
+        commands=map(wrap_gl_command, commands))
     return json.dumps(d)
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
@@ -71,8 +76,7 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
         self.send_commands()
         
     def send_commands(self):
-        for command in gl.commands:
-            self.write_message(wrap_gl_command(command))    
+        self.write_message(wrap_gl_commands(gl.commands))    
 
     def on_close(self):
         print "WebSocket closed"
