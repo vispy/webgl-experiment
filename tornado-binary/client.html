@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script type="text/javascript">
+
+function read_blob(ws, b) {
+    var fileReader = new FileReader();
+    fileReader.onload = function(c) {
+        d = new Float32Array(c.target.result);
+        //console.log(d[8]);
+        ws.send("done");
+    };
+    fileReader.readAsArrayBuffer(b);
+}
+
+function WebSocketTest()
+{
+  if ("WebSocket" in window)
+  {
+    var ws = new WebSocket("ws://localhost:8888/");
+    ws.onmessage = function (evt) {
+        d = evt.data;
+        //ws.send("done");
+        read_blob(ws, d);
+    };
+  }
+  else
+  {
+     alert("WebSocket NOT supported by your Browser!");
+  }
+}
+</script>
+</head>
+<body onload="WebSocketTest()">
+</body>
+</html>
