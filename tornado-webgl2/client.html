@@ -28,7 +28,6 @@
                 outputs = [];
                 for (var i = 0; i < commands.length; i++) {
                     c = commands[i];
-                    //console.log(c);
                     name = c['name'];
                     args = c['args'];
                     for (var j = 0; j < args.length; j++) {
@@ -45,9 +44,6 @@
                         }
                     }
                     outputs[i] = gl[name].apply(gl, args);
-                    /*console.log(name);
-                    console.log(args);
-                    console.log(outputs[i]);*/
                 }
             };
         }

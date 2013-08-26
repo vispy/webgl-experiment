@@ -6,6 +6,7 @@ import tornado.web
 import tornado.websocket
 from tornado import gen
 import numpy as np
+import webbrowser
 import json
 from json import JSONEncoder
 import math
@@ -20,8 +21,6 @@ from vispy.gl import _constants
 # -----------------------------------------------------------------------------
 class GLRecorder(object):
     """Capture all GL commands with the adequate arguments.
-    
-    TODO: capture the output for some annotated functions.
     """
     def __init__(self):
         self.clear()
@@ -47,6 +46,7 @@ def convert_name(name):
     """Return the ES command name."""
     # Use WebGL syntax: there is no "gl" prefix and the first letter is
     # in lower case.
+    # TODO: generate a dict with "GL name" ==> "WebGL name" and tweak it
     if name == 'glGet':
         return 'getParameter'
     elif name == 'glGenBuffers':
@@ -87,7 +87,7 @@ def wrap_gl_commands(commands, indent=None):
         pprint.pprint(d, indent=4)
         raise
 
-class EchoWebSocket(tornado.websocket.WebSocketHandler):
+class GLWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         print("WebSocket opened")
         interval_ms = dt * 1000
@@ -120,16 +120,13 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
         self.sched.stop()
 
 def run():
+    webbrowser.open("client.html", new=2)
     application = tornado.web.Application([
-            (r"/", EchoWebSocket),
+            (r"/", GLWebSocket),
         ])
     application.listen(8888)
-    main_loop = tornado.ioloop.IOLoop.instance()    
+    main_loop = tornado.ioloop.IOLoop.instance()
     main_loop.start()
-    
-
-    
-    
     
     
 # -----------------------------------------------------------------------------
@@ -173,7 +170,6 @@ t = 0.
 dt = .1
 def on_paint(e):
     global t
-    
     
     data = .2 * np.random.randn(100, 2).astype(np.float32)
     
