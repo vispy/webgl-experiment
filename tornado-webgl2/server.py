@@ -79,7 +79,7 @@ def wrap_gl_command(command):
 def wrap_gl_commands(commands, indent=None):
     d = OrderedDict(
         message_type='gl',
-        commands=map(wrap_gl_command, commands))
+        commands=list(map(wrap_gl_command, commands)))
     try:
         return json.dumps(d, indent=indent, cls=MyEncoder)
     except:
@@ -89,7 +89,7 @@ def wrap_gl_commands(commands, indent=None):
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
-        print "WebSocket opened"
+        print("WebSocket opened")
         interval_ms = dt * 1000
         main_loop = tornado.ioloop.IOLoop.instance()
         self.sched = tornado.ioloop.PeriodicCallback(self.schedule_func, interval_ms, 
@@ -116,7 +116,7 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
         self.write_message(message)
 
     def on_close(self):
-        print "WebSocket closed"
+        print("WebSocket closed")
         self.sched.stop()
 
 def run():
